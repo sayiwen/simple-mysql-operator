@@ -34,7 +34,6 @@
 | S3_SECRET_KEY | ********** | 访问密钥秘钥 |
 | S3_PREFIX | default | 存储桶内的前缀路径 |
 | S3_KEEP_DAYS | 7 | S3 备份保留天数 |
-
 | MYSQL_HOST | host.docker.internal | MySQL 主机地址 |
 | MYSQL_PORT | 3306 | MySQL 端口 |
 | MYSQL_USER | root | MySQL 用户名 |
