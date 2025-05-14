@@ -1,0 +1,20 @@
+FROM harbor.subat.cn/docker/percona/percona-xtrabackup:8.0.35
+
+LABEL maintainer="Subat DevOps Team"
+LABEL description="MySQL恢复工具，基于Percona XtraBackup 8.0.35"
+
+# 安装工具
+COPY --chmod=755 ossutil64 /usr/local/bin/ossutil
+COPY --chmod=755 mc /usr/local/bin/mc
+
+# 安装恢复脚本
+COPY restore.sh /usr/local/bin/restore.sh
+
+# 设置工作目录
+WORKDIR /app
+
+# 设置环境变量
+ENV PATH="/usr/local/bin:${PATH}"
+
+# 将恢复脚本设为容器入口点
+ENTRYPOINT ["/usr/local/bin/restore.sh"] 

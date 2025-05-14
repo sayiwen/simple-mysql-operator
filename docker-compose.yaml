@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  mysql:
+    image: harbor.subat.cn/docker/percona/percona-server:8.0.32-24
+    container_name: mysql
+    ports:
+      - "23306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567
+      MYSQL_DATABASE: test
+    volumes:
+      - mysql_data:/var/lib/mysql
+  phpmyadmin:
+    image: registry.cn-hangzhou.aliyuncs.com/subat-public/phpmyadmin:latest
+    ports:
+      - "28080:80"
+    environment:
+      - PMA_HOSTS=mysql
+      - MEMORY_LIMIT=1024M
+      - UPLOAD_LIMIT=2048M
+      - PHP_UPLOAD_MAX_FILESIZE=2000M
+      - PHP_POST_MAX_SIZE=2000M
+    depends_on:
+      - mysql
+volumes:
+  mysql_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./mysql_data
+
