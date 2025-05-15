@@ -1,0 +1,13 @@
+apiVersion: mysql.subat.cn/v1
+kind: SimpleMySqlBackup
+metadata:
+  name: mysql-backup
+  namespace: default
+spec:
+  mysqlRef: example-mysql
+  s3:
+    bucket: "gitlab-storage"
+    endpoint: "https://oss-xj.subat.cn"
+    prefix: "example-mysql/backups"
+    secretRef: "s3-credentials"
+    keepDays: 7

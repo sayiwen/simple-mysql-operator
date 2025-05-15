@@ -1,0 +1,74 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: simplemysqlbackups.mysql.subat.cn
+spec:
+  group: mysql.subat.cn
+  names:
+    kind: SimpleMySqlBackup
+    listKind: SimpleMySqlBackupList
+    plural: simplemysqlbackups
+    singular: simplemysqlbackup
+    shortNames:
+      - smysqlbackup
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                mysqlRef:
+                  type: string
+                  description: "Reference to SimpleMySql resource"
+                ttlSecondsAfterFinished:
+                  type: integer
+                  description: "Time in seconds after which the backup job will be automatically deleted"
+                  default: 86400
+                retentionDays:
+                  type: integer
+                  description: "Days to keep the backup resource after successful completion"
+                  default: 7
+                s3:
+                  type: object
+                  properties:
+                    bucket:
+                      type: string
+                      description: "S3 bucket name"
+                    endpoint:
+                      type: string
+                      description: "S3 endpoint URL"
+                    prefix:
+                      type: string
+                      description: "Prefix path within the bucket"
+                      default: "default"
+                    secretRef:
+                      type: string
+                      description: "Secret containing S3 credentials"
+                    keepDays:
+                      type: integer
+                      description: "Days to keep backups"
+                      default: 7
+              required:
+                - mysqlRef
+                - s3
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+                backupId:
+                  type: string
+                startTime:
+                  type: string
+                completionTime:
+                  type: string
+      subresources:
+        status: {} 

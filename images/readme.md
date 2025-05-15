@@ -6,11 +6,11 @@
 
 本项目提供两个独立的 Docker 镜像：
 
-1. **备份镜像 (`harbor.subat.cn/tools/subat-mysql-operator:backup-8.0.35`)**
+1. **备份镜像 (`harbor.subat.cn/subat-mysql-operator/backup:8.0.35-1`)**
    - 用于执行 MySQL 数据库备份并上传到对象存储
    - 基于 Percona XtraBackup 8.0.35
 
-2. **恢复镜像 (`harbor.subat.cn/tools/subat-mysql-operator:restore-8.0.35`)**
+2. **恢复镜像 (`harbor.subat.cn/subat-mysql-operator/restore:8.0.35-1`)**
    - 用于从对象存储下载备份并恢复数据
    - 基于 Percona XtraBackup 8.0.35
 
@@ -38,8 +38,8 @@
 | MYSQL_PORT | 3306 | MySQL 端口 |
 | MYSQL_USER | root | MySQL 用户名 |
 | MYSQL_PASSWORD | ******** | MySQL 密码 |
-| S3_TYPE | "" | 存储类型，"aliyun"表示阿里云OSS，空值表示S3兼容存储 |
 | SKIP_BACKUP | 0 | 设置为1跳过实际备份，创建测试文件 |
+| CALLBACK_URL | "" | 备份完成后的回调URL，会以POST方式发送backup_name参数 |
 
 ### Docker 运行示例
 
@@ -54,7 +54,8 @@ docker run \
   -e S3_ACCESS_KEY=your-access-key \
   -e S3_SECRET_KEY=your-secret-key \
   -e S3_PREFIX=mysql/backups \
-  harbor.subat.cn/tools/subat-mysql-operator:backup-8.0.35
+  -e CALLBACK_URL=https://your-callback-url \
+  harbor.subat.cn/subat-mysql-operator/backup:8.0.35-1
 
 ```
 
@@ -69,7 +70,6 @@ docker run \
 | S3_ACCESS_KEY | ********** | 访问密钥 ID |
 | S3_SECRET_KEY | ********** | 访问密钥秘钥 |
 | S3_PREFIX | default | 存储桶内的前缀路径 |
-| S3_TYPE | "" | 存储类型，"aliyun"表示阿里云OSS，空值表示S3兼容存储 |
 | BACKUP_ID | "" | 指定要恢复的备份ID（时间戳部分），不指定则使用最新备份 |
 
 ### Docker 运行示例
@@ -83,7 +83,7 @@ docker run \
   -e S3_ACCESS_KEY=your-access-key \
   -e S3_SECRET_KEY=your-secret-key \
   -e S3_PREFIX=mysql/backups \
-  harbor.subat.cn/tools/subat-mysql-operator:restore-8.0.35
+  harbor.subat.cn/subat-mysql-operator/restore:8.0.35-1
 
 # 恢复指定ID的备份
 docker run \
@@ -93,7 +93,7 @@ docker run \
   -e S3_ACCESS_KEY=your-access-key \
   -e S3_SECRET_KEY=your-secret-key \
   -e BACKUP_ID=20250514124456 \
-  harbor.subat.cn/tools/subat-mysql-operator:restore-8.0.35
+  harbor.subat.cn/subat-mysql-operator/restore:8.0.35-1
 ```
 
 ## Kubernetes 部署示例
@@ -113,7 +113,7 @@ spec:
         spec:
           containers:
           - name: backup
-            image: harbor.subat.cn/tools/subat-mysql-operator:backup-8.0.35
+            image: harbor.subat.cn/subat-mysql-operator/backup:8.0.35-1
             env:
             - name: MYSQL_HOST
               value: "mysql.database.svc.cluster.local"
@@ -138,6 +138,8 @@ spec:
                 secretKeyRef:
                   name: s3-credentials
                   key: secret-key
+            - name: CALLBACK_URL
+              value: "https://your-webhook-endpoint/backup-complete"
           restartPolicy: OnFailure
 ```
 
@@ -153,7 +155,7 @@ spec:
     spec:
       containers:
       - name: restore
-        image: harbor.subat.cn/tools/subat-mysql-operator:restore-8.0.35
+        image: harbor.subat.cn/subat-mysql-operator/restore:8.0.35-1
         env:
         - name: S3_BUCKET
           value: "your-bucket"

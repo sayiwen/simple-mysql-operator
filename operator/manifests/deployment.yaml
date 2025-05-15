@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-operator
+  namespace: default
+  labels:
+    app: mysql-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-operator
+  template:
+    metadata:
+      labels:
+        app: mysql-operator
+    spec:
+      serviceAccountName: mysql-operator
+      containers:
+      - name: operator
+        image: harbor.subat.cn/subat-mysql-operator/operator:8.0.35-beta2
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi 
+        env:
+          - name: REGISTRY
+            value: harbor.subat.cn/subat-mysql-operator
+          - name: VERSION
+            value: 8.0.35-1

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 将所有环境变量写入 /app/env 文件
+env > /app/env
+
 # 默认配置
 S3_BUCKET="example-bucket"
 S3_ENDPOINT="https://example.com"
@@ -9,6 +12,7 @@ S3_PREFIX="default"
 S3_TYPE="" # aliyun或留空表示S3兼容存储
 SKIP_BACKUP=0 # 设置为1跳过备份，仅测试上传
 S3_KEEP_DAYS=7 # 保留天数
+CALLBACK_URL=""
 
 MYSQL_HOST="host.docker.internal"
 MYSQL_PORT="3306"
@@ -25,8 +29,8 @@ DATE=$(date +%Y%m%d%H%M%S)
 BACKUP_NAME="backup_${DATE}"
 
 # 加载环境变量配置
-if [ -f /env ]; then
-  source /env
+if [ -f /app/env ]; then
+  source /app/env
 fi
 
 # 使用环境变量覆盖默认值
@@ -35,7 +39,6 @@ fi
 [ -n "$S3_ACCESS_KEY" ] && S3_ACCESS_KEY="$S3_ACCESS_KEY"
 [ -n "$S3_SECRET_KEY" ] && S3_SECRET_KEY="$S3_SECRET_KEY"
 [ -n "$S3_PREFIX" ] && S3_PREFIX="$S3_PREFIX"
-[ -n "$S3_TYPE" ] && S3_TYPE="$S3_TYPE"
 [ -n "$SKIP_BACKUP" ] && SKIP_BACKUP="$SKIP_BACKUP"
 [ -n "$S3_KEEP_DAYS" ] && S3_KEEP_DAYS="$S3_KEEP_DAYS"
 
@@ -43,6 +46,14 @@ fi
 [ -n "$MYSQL_PORT" ] && MYSQL_PORT="$MYSQL_PORT"
 [ -n "$MYSQL_USER" ] && MYSQL_USER="$MYSQL_USER"
 [ -n "$MYSQL_PASSWORD" ] && MYSQL_PASSWORD="$MYSQL_PASSWORD"
+
+
+
+# 判断是否为阿里云OSS
+if [[ "$S3_ENDPOINT" == *"aliyuncs"* ]]; then
+  S3_TYPE="aliyun"
+fi
+
 
 # 检查必需变量
 check_requirements() {
@@ -136,6 +147,12 @@ upload_backup() {
   fi
   
   echo "备份上传成功: $BACKUP_NAME.tar.gz"
+
+  if [ -n "$CALLBACK_URL" ]; then
+    echo "回调: $CALLBACK_URL"
+    result=$(curl -X POST "$CALLBACK_URL" -d "backup_name=$BACKUP_NAME" --max-time 10 --retry 3 --retry-delay 1 --retry-max-time 60)
+    echo "回调结果: $result"
+  fi
 }
 
 # 清理本地备份文件

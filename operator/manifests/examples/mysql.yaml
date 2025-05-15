@@ -1,0 +1,26 @@
+apiVersion: mysql.subat.cn/v1
+kind: SimpleMySql
+metadata:
+  name: example-mysql
+  namespace: default
+spec:
+  database:
+    name: app
+    password: root
+  nodeSelector:
+    subat.cn/region: xinjiang
+  storage:
+    size: 10Gi
+    storageClass: xj-storage 
+  callbackUrl: https://kawa-backend.gxxushang.com/apk/admin/create
+  phpmyadmin:
+    enabled: true
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    s3:
+      bucket: "gitlab-storage"
+      endpoint: "https://oss-xj.subat.cn"
+      prefix: "mysql/backups"
+      secretRef: "s3-credentials"
+      keepDays: 7

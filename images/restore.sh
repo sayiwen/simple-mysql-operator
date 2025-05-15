@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 将所有环境变量写入 /app/env 文件
+env > /app/env
+
 # 默认配置
 S3_BUCKET="example-bucket"
 S3_ENDPOINT="https://example.com"
@@ -14,8 +17,8 @@ RESTORE_DIR="/app/restore"
 TEMP_DIR="/tmp/mysql_backup"
 
 # 加载环境变量配置
-if [ -f /env ]; then
-  source /env
+if [ -f /app/env ]; then
+  source /app/env
 fi
 
 # 使用环境变量覆盖默认值
@@ -26,6 +29,12 @@ fi
 [ -n "$S3_PREFIX" ] && S3_PREFIX="$S3_PREFIX"
 [ -n "$S3_TYPE" ] && S3_TYPE="$S3_TYPE"
 [ -n "$BACKUP_ID" ] && BACKUP_ID="$BACKUP_ID"
+
+
+# 判断是否为阿里云OSS
+if [[ "$S3_ENDPOINT" == *"aliyuncs"* ]]; then
+  S3_TYPE="aliyun"
+fi
 
 
 # 解析命令行参数
