@@ -1,42 +1,42 @@
 # MySQL Operator
 
-A Kubernetes operator for deploying and managing MySQL instances and backups.
+用于部署和管理 单实例MySQL与备份的 Kubernetes Operator
 
-## Features
+## 功能特性
 
-- Deploy SimpleMySql resources to create MySQL instances
-- Create SimpleMySqlBackup resources to run backups to S3-compatible storage
-- Automatic secret generation or use existing secrets
-- Optional phpMyAdmin integration with configurable resources
-- Support for resource limits, node selectors, affinity, and tolerations
-- Restore from backup during deployment
-- Automatic cleanup of completed backup jobs and resources
-- Scheduled backups with configurable retention policies
-- Callback URL support for backup notifications
+- 部署 SimpleMySql 资源以创建 MySQL 实例
+- 创建 SimpleMySqlBackup 资源以执行备份到 S3 兼容存储
+- 自动密钥生成或使用现有密钥
+- 可选的 phpMyAdmin 集成，支持资源配置
+- 支持资源限制、节点选择器、亲和性和容忍度设置
+- 部署时从备份恢复
+- 自动清理已完成的备份作业和资源
+- 支持计划备份与可配置的保留策略
+- 支持备份通知的回调 URL
 
-## Installation
+## 安装
 
-### Prerequisites
+### 前提条件
 
-- Kubernetes cluster 1.16+
-- kubectl configured to communicate with your cluster
+- Kubernetes 集群 1.16+
+- kubectl 已配置为与您的集群通信
 
-### Install the CRDs
+### 安装 CRD
 
 ```bash
 kubectl apply -f manifests/crds/
 ```
 
-### Install the operator
+### 安装操作器
 
 ```bash
 kubectl apply -f manifests/rbac/
 kubectl apply -f manifests/deployment.yaml
 ```
 
-## Usage
+## 使用方法
 
-### Deploy a MySQL instance
+### 部署 MySQL 实例
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -58,7 +58,7 @@ spec:
     size: 10Gi
 ```
 
-### Deploy MySQL with phpMyAdmin
+### 部署带有 phpMyAdmin 的 MySQL
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -83,7 +83,7 @@ spec:
         cpu: "200m"
 ```
 
-### Configure scheduled backups
+### 配置计划备份
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -98,7 +98,7 @@ spec:
     size: 10Gi
   backup:
     enabled: true
-    schedule: "0 2 * * *"  # Daily at 2am
+    schedule: "0 2 * * *"  # 每天凌晨2点
     s3:
       bucket: "your-bucket"
       endpoint: "https://s3.example.com"
@@ -108,7 +108,7 @@ spec:
   callbackUrl: "https://webhook.example.com/backup-complete"
 ```
 
-### Create a one-time backup
+### 创建一次性备份
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -118,8 +118,8 @@ metadata:
   namespace: default
 spec:
   mysqlRef: example-mysql
-  ttlSecondsAfterFinished: 86400  # Cleanup Job after 1 day (default)
-  retentionDays: 7  # Auto-delete backup resource after 7 days (default)
+  ttlSecondsAfterFinished: 86400  # 作业完成后1天清理（默认）
+  retentionDays: 7  # 7天后自动删除备份资源（默认）
   s3:
     bucket: "your-bucket"
     endpoint: "https://s3.example.com"
@@ -128,7 +128,7 @@ spec:
     keepDays: 7
 ```
 
-### Deploy a MySQL instance with restore from backup
+### 从备份恢复部署 MySQL 实例
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -142,7 +142,7 @@ spec:
   storage:
     size: 10Gi
   restore:
-    backupId: "20230101120000"  # Optional, uses latest if not specified
+    backupId: "20230101120000"  # 可选，如未指定则使用最新备份
     s3:
       bucket: "your-bucket"
       endpoint: "https://s3.example.com"
@@ -150,7 +150,7 @@ spec:
       secretRef: "s3-credentials"
 ```
 
-### Use existing secrets
+### 使用现有密钥
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -161,12 +161,12 @@ metadata:
 spec:
   database:
     name: mydb
-    existingSecret: "mysql-credentials"  # Secret should contain 'password' key
+    existingSecret: "mysql-credentials"  # 密钥应包含'password'键
   storage:
     size: 10Gi
 ```
 
-### Advanced node placement
+### 高级节点放置
 
 ```yaml
 apiVersion: mysql.subat.cn/v1
@@ -197,16 +197,16 @@ spec:
     effect: "NoSchedule"
 ```
 
-## Images
+## 镜像
 
-The operator uses the following images from the configured registry:
+操作器使用以下来自配置注册表的镜像：
 
-- `percona-server` - MySQL database server (Percona Server distribution)
-- `phpmyadmin` - Web interface for MySQL management
-- `backup` - Custom image for running backups to S3
-- `restore` - Custom image for restoring from S3 backups
+- `percona-server` - MySQL 数据库服务器（Percona Server 发行版）
+- `phpmyadmin` - MySQL 管理的 Web 界面
+- `backup` - 用于执行备份到 S3 的自定义镜像
+- `restore` - 用于从 S3 备份恢复的自定义镜像
 
-The registry and version are configured through environment variables in the operator deployment:
+注册表和版本通过操作器部署中的环境变量配置：
 
 ```yaml
 env:
@@ -216,9 +216,9 @@ env:
     value: 8.0.35-1
 ```
 
-## Building
+## 构建
 
-Build the operator and required images:
+构建操作器和所需镜像：
 
 ```bash
 cd images && docker build -t harbor.subat.cn/subat-mysql-operator/percona-server:8.0.35-1 -f Dockerfile.mysql .
@@ -228,23 +228,23 @@ cd images && docker build -t harbor.subat.cn/subat-mysql-operator/restore:8.0.35
 docker build -t harbor.subat.cn/subat-mysql-operator/operator:8.0.35-1 .
 ```
 
-## Development
+## 开发
 
-### Local development setup
+### 本地开发环境设置
 
-The operator requires Python 3.9. You can use the provided setup script to create a virtual environment:
+操作器需要 Python 3.9。您可以使用提供的设置脚本创建虚拟环境：
 
 ```bash
-# Run the setup script
+# 运行设置脚本
 ./setup.sh
 
-# Or manually set up the environment
+# 或手动设置环境
 python3.10 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Running the operator locally
+### 本地运行操作器
 
 ```bash
 source venv/bin/activate
@@ -252,14 +252,14 @@ cd src
 python main.py --verbose
 ```
 
-### Common issues
+### 常见问题
 
-If you encounter errors related to Python version compatibility:
+如果遇到与 Python 版本兼容性相关的错误：
 
-1. Make sure you're using Python 3.9 (the same version specified in the Dockerfile)
-2. Create a fresh virtual environment with Python 3.9
-3. Install the exact package versions specified in requirements.txt
+1. 确保您使用的是 Python 3.9（与 Dockerfile 中指定的版本相同）
+2. 使用 Python 3.9 创建一个新的虚拟环境
+3. 安装 requirements.txt 中指定的确切软件包版本
 
-## License
+## 许可证
 
 MIT
